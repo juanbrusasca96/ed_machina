@@ -2,8 +2,8 @@ from sqlalchemy import Column, Integer, String
 from database import Base
 
 
-class Subject(Base):
+class SubjectModel(Base):
     __tablename__ = "subject"
     
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, nullable=False)
+    subject_id = Column(Integer, primary_key=True, index=True)
+    subject_name = Column(String, nullable=False)
