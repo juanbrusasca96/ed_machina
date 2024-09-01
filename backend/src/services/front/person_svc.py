@@ -8,6 +8,7 @@ from schemas.person_schemas import PersonCreate
 
 
 def get_person_by_email(email: str, db: Session):
+    email = email.strip().lower() if email else None
     sql = text(
         """
         SELECT *
@@ -102,6 +103,7 @@ def get_related_subjects(person_ids: tuple, db: Session):
 
 
 def create_person(person_data: dict, db: Session):
+    person_data.get("person_email").strip().lower()
     person_db = PersonModel(**person_data)
     db.add(person_db)
     db.commit()

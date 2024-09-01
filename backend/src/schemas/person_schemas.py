@@ -33,7 +33,7 @@ class PersonCreate(Person):
 class PersonCreateResponse(Person):
     person_id: int
 
-    class Config:
+    class ConfigDict:
         orm_mode = True
 
 

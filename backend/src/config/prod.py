@@ -7,6 +7,7 @@ class EnvironmentSettings(BaseSettings):
     COOKIE_DOMAIN: str
     COOKIE_SAMESITE: str
     SQL_DATABASE_URL: str
+    SQL_TEST_DATABASE_URL: str
     DB: str
     DNS_VERIFICATION: str
     DNS_RESET_PSW: str
