@@ -1,10 +1,7 @@
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import text
 from utils.functions import get_dict_from_list
-from services.front.person_career_svc import create_person_career
-from services.front.person_subject_svc import create_person_subject
 from models.person import PersonModel
-from schemas.person_schemas import PersonCreate
 
 
 def get_person_by_email(email: str, db: Session):

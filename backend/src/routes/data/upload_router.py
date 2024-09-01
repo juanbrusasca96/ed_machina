@@ -1,7 +1,7 @@
 from os import getcwd
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from database import get_db, Base, engine
+from database import get_db, engine
 from sqlalchemy.sql import text
 from sqlalchemy import inspect
 

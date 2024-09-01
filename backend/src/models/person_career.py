@@ -1,6 +1,5 @@
-from sqlalchemy import Column, Date, ForeignKey, Integer
+from sqlalchemy import Column, ForeignKey, Integer
 from database import Base
-from datetime import date
 
 
 class PersonCareerModel(Base):

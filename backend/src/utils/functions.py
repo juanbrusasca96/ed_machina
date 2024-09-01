@@ -17,7 +17,6 @@ def filter_fields(data: BaseModel, model_cls):
 def extract_id(obj, id_name):
     """
     Extrae el valor de un identificador de un objeto.
-    Funcion usada principalmente en las funciones que se encuentran debajo.
 
     Args:
         obj: El objeto del cual se va a extraer el identificador.
@@ -55,17 +54,6 @@ def get_dict_from_list(array: list, id_name_or_index):
     Returns:
         Un diccionario donde cada clave es un identificador y cada valor es una lista de objetos
         que tienen ese identificador.
-
-    Usage:
-        Esta funcion es la IDEAL para ocaciones donde sabemos que necesitaremos un for loop para encontrar coincidencias
-        dentro de una lista, ya que, la lista se recorre una sola vez para agrupar los objetos y luego acceder a ellos es mucho mas eficiente.
-        Esta funcion deberia usarse cuando se necesita agrupar objetos de una lista basados en un identificador.
-        Esta funcion deberia usarse ANTES de un for loop.
-        ejemplo:
-            grouped_dict = get_dict_from_list(lista_de_objetos, 'id')
-            for objeto in lista_de_objetos:
-                coincidencias = grouped_dict.get(objeto.id)
-                # Resto del codigo
     """
     grouped_dict = {}
 

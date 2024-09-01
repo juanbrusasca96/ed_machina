@@ -4,7 +4,7 @@ from fastapi.testclient import TestClient
 from services.front.person_svc import get_person_by_email
 from models.person import PersonModel
 from sqlalchemy.orm import Session
-from database import get_db, get_test_db, test_engine, Base
+from database import get_test_db, test_engine, Base
 
 client = TestClient(app)
 
