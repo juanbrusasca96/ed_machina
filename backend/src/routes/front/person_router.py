@@ -48,6 +48,10 @@ async def get_person_route(person_id: int, db: Session = Depends(get_db)):
 async def get_all_persons_route(
     skip: int = 0, limit: int = 10, db: Session = Depends(get_db)
 ):
+    if skip < 0 or limit < 0:
+        raise HTTPException(
+            status_code=400, detail="Skip and limit must be greater than 0"
+        )
     response = [
         PersonResponse(**dict(person))
         for person in get_all_persons(skip, limit, db)

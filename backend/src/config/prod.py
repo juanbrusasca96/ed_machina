@@ -9,6 +9,7 @@ class EnvironmentSettings(BaseSettings):
     SQL_DATABASE_URL: str
     SQL_TEST_DATABASE_URL: str
     DB: str
+    DB_TEST: str
     DNS_VERIFICATION: str
     DNS_RESET_PSW: str
     AUTHJWT_SECRET_KEY: str

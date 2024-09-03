@@ -5,7 +5,6 @@ from database import Base, engine, test_engine
 
 
 Base.metadata.create_all(bind=engine)
-Base.metadata.create_all(bind=test_engine)
 
 app = FastAPI()
 

@@ -4,7 +4,9 @@ from fastapi.testclient import TestClient
 from services.front.person_svc import get_person_by_email
 from models.person import PersonModel
 from sqlalchemy.orm import Session
-from database import get_test_db, test_engine, Base
+from database import get_test_db, test_engine, Base, get_db, TestingSessionLocal
+
+app.dependency_overrides[get_db] = get_test_db
 
 client = TestClient(app)
 
@@ -18,13 +20,22 @@ def test_db_setup():
 
 @pytest.fixture(scope="function", autouse=True)
 def clean_db():
+    Base.metadata.create_all(bind=test_engine)
+
+    connection = test_engine.connect()
+    transaction = connection.begin()
+    TestingSessionLocal.configure(bind=connection)
+
     yield
-    with test_engine.connect() as connection:
-        for tbl in reversed(Base.metadata.sorted_tables):
-            connection.execute(tbl.delete())
+
+    transaction.rollback()
+    connection.close()
+
+    Base.metadata.drop_all(bind=test_engine)
+    TestingSessionLocal.close_all()
 
 
-def test_get_person_by_email():
+def test_get_person_by_email(test_db_setup):
     db: Session = next(get_test_db())
     email = "test@example.com"
 
@@ -46,7 +57,7 @@ def test_get_person_by_email():
     db.commit()
 
 
-def test_get_person_by_email_not_found():
+def test_get_person_by_email_not_found(test_db_setup):
     db: Session = next(get_test_db())
 
     email = "nonexistent@example.com"
@@ -55,7 +66,7 @@ def test_get_person_by_email_not_found():
     assert person is None
 
 
-def test_get_person_by_email_none():
+def test_get_person_by_email_none(test_db_setup):
     db: Session = next(get_test_db())
 
     email = None
@@ -63,7 +74,7 @@ def test_get_person_by_email_none():
     assert person is None
 
 
-def test_get_person_by_email_with_spaces():
+def test_get_person_by_email_with_spaces(test_db_setup):
     db: Session = next(get_test_db())
 
     email = "test@example.com"
@@ -85,7 +96,7 @@ def test_get_person_by_email_with_spaces():
     db.commit()
 
 
-def test_sql_injection_attempt():
+def test_sql_injection_attempt(test_db_setup):
     db: Session = next(get_test_db())
 
     email = "test@example.com' OR '1'='1"
@@ -93,7 +104,7 @@ def test_sql_injection_attempt():
     assert person is None
 
 
-def test_case_sensitivity():
+def test_case_sensitivity(test_db_setup):
     db: Session = next(get_test_db())
 
     email = "test@example.com"
@@ -115,7 +126,7 @@ def test_case_sensitivity():
     db.commit()
 
 
-def test_check_email_exists_route():
+def test_check_email_exists_route(test_db_setup):
     db: Session = next(get_test_db())
     email = "test@example.com"
     new_person = PersonModel(
@@ -134,20 +145,20 @@ def test_check_email_exists_route():
     db.commit()
 
 
-def test_check_email_does_not_exist_route():
+def test_check_email_does_not_exist_route(test_db_setup):
     email = "nonexistent@example.com"
     response = client.get(f"/front/person/check_email_exists?email={email}")
     assert response.status_code == 200
     assert response.json() is False
 
 
-def test_invalid_email_format():
+def test_invalid_email_format(test_db_setup):
     email = "invalid-email-format"
     response = client.get(f"/front/person/check_email_exists?email={email}")
     assert response.status_code == 422
 
 
-def test_empty_email():
+def test_empty_email(test_db_setup):
     email = ""
     response = client.get(f"/front/person/check_email_exists?email={email}")
     assert response.status_code == 422
