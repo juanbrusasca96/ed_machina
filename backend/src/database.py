@@ -6,13 +6,17 @@ import os
 
 
 DOCKER_DATABASE_URL = os.getenv(enviro.DB)
+DOCKER_DATABASE_TEST_URL = os.getenv(enviro.DB_TEST)
 
 if DOCKER_DATABASE_URL:
     engine = create_engine(DOCKER_DATABASE_URL)
 else:
     engine = create_engine(enviro.SQL_DATABASE_URL)
     
-test_engine = create_engine(enviro.SQL_TEST_DATABASE_URL)
+if DOCKER_DATABASE_TEST_URL:
+    test_engine = create_engine(DOCKER_DATABASE_TEST_URL)
+else:
+    test_engine = create_engine(enviro.SQL_TEST_DATABASE_URL)
 
 
 SessionLocal = sessionmaker(

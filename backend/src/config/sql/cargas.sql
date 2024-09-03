@@ -1,4 +1,11 @@
 BEGIN TRANSACTION;
+CREATE TABLE career_subject (
+    career_subject_id SERIAL PRIMARY KEY,
+    career_id INT NOT NULL,
+    subject_id INT NOT NULL,
+    FOREIGN KEY (career_id) REFERENCES career(career_id),
+    FOREIGN KEY (subject_id) REFERENCES subject(subject_id)
+);
 INSERT INTO career(career_name) VALUES ('Ingeniería en Sistemas');
 INSERT INTO career(career_name) VALUES ('Ingeniería en Electrónica');
 INSERT INTO career(career_name) VALUES ('Ingeniería en Mecanica');  
