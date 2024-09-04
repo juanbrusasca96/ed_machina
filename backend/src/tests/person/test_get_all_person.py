@@ -99,13 +99,13 @@ def test_get_all_persons_with_related_data(test_db_setup, mocker):
     assert len(data["persons"]) == 2
     assert data["persons"][0]["person_name"] == "John"
     assert data["persons"][0]["careers"] == [
-        {"person_id": 1, "career_name": "Engineering"}
+        {"person_id": 1, "career_name": "Engineering", "enrollment_year": 2021}
     ]
-    assert data["persons"][0]["subjects"] == [{"person_id": 1, "subject_name": "Math"}]
+    assert data["persons"][0]["subjects"] == [{"person_id": 1, "subject_name": "Math", "study_time": 5, "subject_attempts": 1}]
     assert data["persons"][1]["person_name"] == "Jane"
-    assert data["persons"][1]["careers"] == [{"person_id": 2, "career_name": "Biology"}]
+    assert data["persons"][1]["careers"] == [{"person_id": 2, "career_name": "Biology", "enrollment_year": 2021}]
     assert data["persons"][1]["subjects"] == [
-        {"person_id": 2, "subject_name": "Chemistry"}
+        {"person_id": 2, "subject_name": "Chemistry", "study_time": 5, "subject_attempts": 1}
     ]
 
 

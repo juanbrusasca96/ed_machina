@@ -8,7 +8,6 @@ from models.person import PersonModel
 from main import app
 from fastapi.testclient import TestClient
 from database import get_test_db, test_engine, Base, get_db, TestingSessionLocal
-from sqlalchemy.orm import Session
 
 
 app.dependency_overrides[get_db] = get_test_db
@@ -121,8 +120,8 @@ def test_get_person_existing_with_related_data(test_db_setup, mocker):
     assert data["person_email"] == "john.doe@example.com"
     assert data["person_phone"] == "1234567890"
     assert data["person_address"] == "Testing"
-    assert data["careers"] == [{"person_id": 1, "career_name": "Engineering"}]
-    assert data["subjects"] == [{"person_id": 1, "subject_name": "Math"}]
+    assert data["careers"] == [{"person_id": 1, "career_name": "Engineering", "enrollment_year": 2021}]
+    assert data["subjects"] == [{"person_id": 1, "subject_name": "Math", "study_time": 5, "subject_attempts": 1}]
 
 
 def test_get_person_existing_no_related_data(test_db_setup, mocker):
