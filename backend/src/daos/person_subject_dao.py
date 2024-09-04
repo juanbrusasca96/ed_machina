@@ -8,7 +8,6 @@ class PersonSubjectDAO(DAO):
     def __init__(self):
         super().__init__(PersonSubjectModel, "person_subject_id")
 
-    @classmethod
     def get_person_subject_by_person_id_and_subject_id(
         self, person_id: int, subject_id: int, db: Session
     ):
