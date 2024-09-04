@@ -85,14 +85,14 @@ Antes de probar la aplicacion debe correrse el endpoint "/data/upload"
 Estructura de Carpetas
 
 .
-├──src/
+├── app/
 │   ├── __init__.py
-│   ├── main.py          # Archivo principal que inicia la aplicación FastAPI
-│   ├── routes/          # Endpoints de la API
+│   ├── main.py          # Archivo principal para iniciar la aplicación FastAPI
+│   ├── routes/          # Definición de endpoints de la API
 │   ├── services/        # Lógica de negocio
-│   ├── daos/            # Acceso a datos (DAOs)
-│   ├── models/          # Definiciones de SQLAlchemy
-│   ├── schemas/         # Modelos de Pydantic para validación de datos
+│   ├── daos/            # Clases DAO para acceso a datos
+│   ├── models/          # Definición de modelos SQLAlchemy
+│   ├── schemas/         # Modelos de Pydantic para validación
 │   └── utils/           # Funciones utilitarias
 ├── Dockerfile
 ├── docker-compose.yml
