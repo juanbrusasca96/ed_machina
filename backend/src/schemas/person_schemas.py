@@ -1,14 +1,15 @@
+from typing import Optional
 from pydantic import BaseModel, EmailStr, field_validator, Field
 from schemas.person_career_schemas import PersonCareer
 from schemas.person_subject_schemas import PersonSubject
 
 
 class Person(BaseModel):
-    person_name: str = Field(min_length=3, max_length=50)
-    person_last_name: str = Field(min_length=3, max_length=50)
+    person_name: Optional[str] = Field(None, min_length=3, max_length=50)
+    person_last_name: Optional[str] = Field(None, min_length=3, max_length=50)
     person_email: EmailStr
-    person_address: str = Field(min_length=5, max_length=100)
-    person_phone: str = Field(pattern=r"^\+?\d{7,15}$")
+    person_address: Optional[str] = Field(None, min_length=5, max_length=100)
+    person_phone: Optional[str] = Field(None, pattern=r"^\+?\d{7,15}$")
 
     @field_validator("person_name", "person_last_name")
     def validate_names(cls, v):

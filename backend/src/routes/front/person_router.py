@@ -27,6 +27,7 @@ from pydantic import EmailStr
 
 person_router = APIRouter(
     prefix="/person",
+    tags=["Person"],
 )
 
 

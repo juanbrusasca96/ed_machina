@@ -28,3 +28,18 @@ def get_career_by_id(person_data: PersonCreate, db: Session):
         result = result._asdict()
 
     return result
+
+
+def get_all_careers(db: Session):
+    sql = text(
+        """
+        SELECT *
+        FROM career
+        """
+    )
+    
+    result = db.execute(sql).fetchall()
+    if result:
+        result = [row._asdict() for row in result]
+        
+    return result
