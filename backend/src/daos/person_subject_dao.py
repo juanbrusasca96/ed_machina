@@ -1,46 +1,16 @@
-from models.person import PersonModel
 from models.person_subject import PersonSubjectModel
-from schemas.person_schemas import PersonCreate
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import text
+from daos.DAO import DAO
 
 
-class PersonSubjectDAO:
-    @staticmethod
-    def create_person_subject(
-        person: PersonModel, person_data: PersonCreate, db: Session
-    ):
-        person_subject = PersonSubjectModel(
-            person_id=person.get("person_id"), **person_data.subject.model_dump()
-        )
-        db.add(person_subject)
-        db.commit()
+class PersonSubjectDAO(DAO):
+    def __init__(self):
+        super().__init__(PersonSubjectModel, "person_subject_id")
 
-    @staticmethod
-    def update_person_subject(person_subject, person_data: PersonCreate, db: Session):
-        sql = text(
-            """
-            UPDATE person_subject
-            SET study_time = :study_time,
-                subject_attempts = :subject_attempts
-            WHERE person_subject_id = :person_subject_id
-            """
-        )
-
-        db.execute(
-            sql,
-            {
-                "study_time": person_subject.get("study_time")
-                + person_data.subject.study_time,
-                "subject_attempts": person_subject.get("subject_attempts")
-                + person_data.subject.subject_attempts,
-                "person_subject_id": person_subject.get("person_subject_id"),
-            },
-        )
-
-    @staticmethod
+    @classmethod
     def get_person_subject_by_person_id_and_subject_id(
-        person_id: int, subject_id: int, db: Session
+        self, person_id: int, subject_id: int, db: Session
     ):
         sql = text(
             """

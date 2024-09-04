@@ -1,13 +1,17 @@
 from sqlalchemy import text
 from sqlalchemy.orm import Session
+from models.subject import SubjectModel
+from daos.DAO import DAO
 
 
-class SubjectDAO:
-    @staticmethod
-    def get_related_subjects(person_ids: tuple, db: Session):
+class SubjectDAO(DAO):
+    def __init__(self):
+        super().__init__(SubjectModel, "subject_id")
+        
+    def get_related_subjects(self, person_ids: tuple, db: Session):
         sql_subjects = text(
             """
-            SELECT s.subject_name, ps.person_id
+            SELECT s.subject_name, ps.person_id, ps.study_time, ps.subject_attempts
             FROM subject s
             JOIN person_subject ps ON s.subject_id = ps.subject_id
             WHERE ps.person_id IN :person_ids
@@ -18,8 +22,7 @@ class SubjectDAO:
         ).fetchall()
         return [row._asdict() for row in subjects_result]
 
-    @staticmethod
-    def get_subjects_by_career_id(career_id: int, db: Session):
+    def get_subjects_by_career_id(self, career_id: int, db: Session):
         sql = text(
             """
             SELECT s.*
