@@ -1,5 +1,9 @@
 import pytest
 from sqlalchemy import inspect
+from models.career import CareerModel
+from models.person_career import PersonCareerModel
+from models.person_subject import PersonSubjectModel
+from models.subject import SubjectModel
 from models.person import PersonModel
 from main import app
 from fastapi.testclient import TestClient
@@ -86,14 +90,28 @@ def test_get_person_existing_with_related_data(test_db_setup, mocker):
     db.commit()
     db.refresh(person)
 
-    mocker.patch(
-        "services.front.person_svc.get_related_careers",
-        return_value=[{"career_id": 1, "career_name": "Engineering"}],
+    career = CareerModel(career_id=1, career_name="Engineering")
+    db.add(career)
+    db.commit()
+
+    subject = SubjectModel(subject_id=1, subject_name="Math")
+    db.add(subject)
+    db.commit()
+
+    person_career = PersonCareerModel(
+        person_id=person.person_id, career_id=career.career_id, enrollment_year=2021
     )
-    mocker.patch(
-        "services.front.person_svc.get_related_subjects",
-        return_value=[{"subject_id": 1, "subject_name": "Math"}],
+    db.add(person_career)
+    db.commit()
+
+    person_subject = PersonSubjectModel(
+        person_id=person.person_id,
+        subject_id=subject.subject_id,
+        study_time=5,
+        subject_attempts=1,
     )
+    db.add(person_subject)
+    db.commit()
 
     response = client.get(f"/front/person/get/{person.person_id}")
     assert response.status_code == 200
@@ -103,8 +121,8 @@ def test_get_person_existing_with_related_data(test_db_setup, mocker):
     assert data["person_email"] == "john.doe@example.com"
     assert data["person_phone"] == "1234567890"
     assert data["person_address"] == "Testing"
-    assert data["careers"] == [{"career_id": 1, "career_name": "Engineering"}]
-    assert data["subjects"] == [{"subject_id": 1, "subject_name": "Math"}]
+    assert data["careers"] == [{"person_id": 1, "career_name": "Engineering"}]
+    assert data["subjects"] == [{"person_id": 1, "subject_name": "Math"}]
 
 
 def test_get_person_existing_no_related_data(test_db_setup, mocker):
@@ -121,8 +139,8 @@ def test_get_person_existing_no_related_data(test_db_setup, mocker):
     db.commit()
     db.refresh(person)
 
-    mocker.patch("services.front.person_svc.get_related_careers", return_value=[])
-    mocker.patch("services.front.person_svc.get_related_subjects", return_value=[])
+    mocker.patch("services.front.career_svc.get_related_careers_svc", return_value=[])
+    mocker.patch("services.front.subject_svc.get_related_subjects_svc", return_value=[])
 
     response = client.get(f"/front/person/get/{person.person_id}")
     assert response.status_code == 200

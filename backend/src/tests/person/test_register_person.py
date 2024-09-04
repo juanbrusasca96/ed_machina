@@ -58,7 +58,7 @@ def test_register_person_new_successful(test_db_setup, mocker):
     db.commit()
 
     mocker.patch(
-        "services.front.career_svc.get_career_by_id",
+        "services.front.career_svc.get_career_by_id_svc",
         return_value={
             "career_id": 1,
             "career_name": "Engineering",
@@ -67,9 +67,9 @@ def test_register_person_new_successful(test_db_setup, mocker):
             "career_subject_id": 1,
         },
     )
-    mocker.patch("services.front.person_svc.get_person_by_email", return_value=None)
+    mocker.patch("services.front.person_svc.get_person_by_email_svc", return_value=None)
     mocker.patch(
-        "services.front.person_svc.create_person",
+        "services.front.person_svc.create_person_svc",
         return_value=PersonModel(person_id=1, person_email="john.doe@example.com"),
     )
 
@@ -92,7 +92,7 @@ def test_register_person_career_not_found(test_db_setup, mocker):
         subject={"subject_id": 2, "study_time": 5, "subject_attempts": 1},
     )
 
-    mocker.patch("services.front.career_svc.get_career_by_id", return_value=None)
+    mocker.patch("services.front.career_svc.get_career_by_id_svc", return_value=None)
 
     response = client.post("/front/person/register", json=person_data.model_dump())
 
@@ -120,7 +120,7 @@ def test_register_person_update_career_and_subject(test_db_setup, mocker):
     db.commit()
 
     mocker.patch(
-        "services.front.career_svc.get_career_by_id",
+        "services.front.career_svc.get_career_by_id_svc",
         return_value={
             "career_id": 1,
             "career_name": "Engineering",
@@ -130,22 +130,22 @@ def test_register_person_update_career_and_subject(test_db_setup, mocker):
         },
     )
     mocker.patch(
-        "services.front.person_svc.get_person_by_email",
+        "services.front.person_svc.get_person_by_email_svc",
         return_value=PersonModel(person_id=2, person_email="alice.johnson@example.com"),
     )
     mocker.patch(
-        "services.front.person_career_svc.get_person_career_by_person_id_and_career_id",
+        "services.front.person_career_svc.get_person_career_by_person_id_and_career_id_svc",
         return_value={"person_career_id": 1},
     )
     mocker.patch(
-        "services.front.person_subject_svc.get_person_subject_by_person_id_and_subject_id",
+        "services.front.person_subject_svc.get_person_subject_by_person_id_and_subject_id_svc",
         return_value={"person_subject_id": 1},
     )
     mocker.patch(
-        "services.front.person_career_svc.update_person_career", return_value=None
+        "services.front.person_career_svc.update_person_career_svc", return_value=None
     )
     mocker.patch(
-        "services.front.person_subject_svc.update_person_subject", return_value=None
+        "services.front.person_subject_svc.update_person_subject_svc", return_value=None
     )
 
     response = client.post("/front/person/register", json=person_data.model_dump())
@@ -175,7 +175,7 @@ def test_register_person_create_new_career_and_subject(test_db_setup, mocker):
     db.commit()
 
     mocker.patch(
-        "services.front.career_svc.get_career_by_id",
+        "services.front.career_svc.get_career_by_id_svc",
         return_value={
             "career_id": 1,
             "career_name": "Engineering",
@@ -185,22 +185,22 @@ def test_register_person_create_new_career_and_subject(test_db_setup, mocker):
         },
     )
     mocker.patch(
-        "services.front.person_svc.get_person_by_email",
+        "services.front.person_svc.get_person_by_email_svc",
         return_value=PersonModel(person_id=3, person_email="bob.brown@example.com"),
     )
     mocker.patch(
-        "services.front.person_career_svc.get_person_career_by_person_id_and_career_id",
+        "services.front.person_career_svc.get_person_career_by_person_id_and_career_id_svc",
         return_value=None,
     )
     mocker.patch(
-        "services.front.person_subject_svc.get_person_subject_by_person_id_and_subject_id",
+        "services.front.person_subject_svc.get_person_subject_by_person_id_and_subject_id_svc",
         return_value=None,
     )
     mocker.patch(
-        "services.front.person_career_svc.create_person_career", return_value=None
+        "services.front.person_career_svc.create_person_career_svc", return_value=None
     )
     mocker.patch(
-        "services.front.person_subject_svc.create_person_subject", return_value=None
+        "services.front.person_subject_svc.create_person_subject_svc", return_value=None
     )
 
     response = client.post("/front/person/register", json=person_data.model_dump())

@@ -1,7 +1,7 @@
 import pytest
 from main import app
 from fastapi.testclient import TestClient
-from services.front.person_svc import get_person_by_email
+from services.front.person_svc import get_person_by_email_svc
 from models.person import PersonModel
 from sqlalchemy.orm import Session
 from database import get_test_db, test_engine, Base, get_db, TestingSessionLocal
@@ -49,7 +49,7 @@ def test_get_person_by_email(test_db_setup):
     db.add(new_person)
     db.commit()
 
-    person = get_person_by_email(email, db)
+    person = get_person_by_email_svc(email, db)
     assert person is not None
     assert person.get("person_email") == email
 
@@ -62,7 +62,7 @@ def test_get_person_by_email_not_found(test_db_setup):
 
     email = "nonexistent@example.com"
 
-    person = get_person_by_email(email, db)
+    person = get_person_by_email_svc(email, db)
     assert person is None
 
 
@@ -70,7 +70,7 @@ def test_get_person_by_email_none(test_db_setup):
     db: Session = next(get_test_db())
 
     email = None
-    person = get_person_by_email(email, db)
+    person = get_person_by_email_svc(email, db)
     assert person is None
 
 
@@ -88,7 +88,7 @@ def test_get_person_by_email_with_spaces(test_db_setup):
     db.add(new_person)
     db.commit()
 
-    person = get_person_by_email("  test@example.com  ", db)
+    person = get_person_by_email_svc("  test@example.com  ", db)
     assert person is not None
     assert person.get("person_email") == email
 
@@ -100,7 +100,7 @@ def test_sql_injection_attempt(test_db_setup):
     db: Session = next(get_test_db())
 
     email = "test@example.com' OR '1'='1"
-    person = get_person_by_email(email, db)
+    person = get_person_by_email_svc(email, db)
     assert person is None
 
 
@@ -118,7 +118,7 @@ def test_case_sensitivity(test_db_setup):
     db.add(new_person)
     db.commit()
 
-    person = get_person_by_email("TEST@EXAMPLE.COM", db)
+    person = get_person_by_email_svc("TEST@EXAMPLE.COM", db)
     assert person is not None
     assert person.get("person_email") == email
 

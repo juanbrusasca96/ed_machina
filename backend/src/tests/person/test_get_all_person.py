@@ -1,6 +1,10 @@
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import inspect
+from models.career import CareerModel
+from models.person_career import PersonCareerModel
+from models.person_subject import PersonSubjectModel
+from models.subject import SubjectModel
 from models.person import PersonModel
 from database import get_test_db, test_engine, Base, get_db, TestingSessionLocal
 from main import app
@@ -55,28 +59,39 @@ def test_get_all_persons_with_related_data(test_db_setup, mocker):
     db.add_all([person1, person2])
     db.commit()
 
-    mocker.patch(
-        "services.front.person_svc.get_related_careers",
-        return_value=[
-            {
-                "person_id": person1.person_id,
-                "career_id": 1,
-                "career_name": "Engineering",
-            },
-            {"person_id": person2.person_id, "career_id": 2, "career_name": "Biology"},
-        ],
+    career1 = CareerModel(career_id=1, career_name="Engineering")
+    career2 = CareerModel(career_id=2, career_name="Biology")
+    db.add_all([career1, career2])
+    db.commit()
+
+    subject1 = SubjectModel(subject_id=1, subject_name="Math")
+    subject2 = SubjectModel(subject_id=2, subject_name="Chemistry")
+    db.add_all([subject1, subject2])
+    db.commit()
+
+    person_career1 = PersonCareerModel(
+        person_id=person1.person_id, career_id=career1.career_id, enrollment_year=2021
     )
-    mocker.patch(
-        "services.front.person_svc.get_related_subjects",
-        return_value=[
-            {"person_id": person1.person_id, "subject_id": 1, "subject_name": "Math"},
-            {
-                "person_id": person2.person_id,
-                "subject_id": 2,
-                "subject_name": "Chemistry",
-            },
-        ],
+    person_career2 = PersonCareerModel(
+        person_id=person2.person_id, career_id=career2.career_id, enrollment_year=2021
     )
+    db.add_all([person_career1, person_career2])
+    db.commit()
+
+    person_subject1 = PersonSubjectModel(
+        person_id=person1.person_id,
+        subject_id=subject1.subject_id,
+        study_time=5,
+        subject_attempts=1,
+    )
+    person_subject2 = PersonSubjectModel(
+        person_id=person2.person_id,
+        subject_id=subject2.subject_id,
+        study_time=5,
+        subject_attempts=1,
+    )
+    db.add_all([person_subject1, person_subject2])
+    db.commit()
 
     response = client.get("/front/person/get_all?skip=0&limit=10")
     assert response.status_code == 200
@@ -84,17 +99,13 @@ def test_get_all_persons_with_related_data(test_db_setup, mocker):
     assert len(data["persons"]) == 2
     assert data["persons"][0]["person_name"] == "John"
     assert data["persons"][0]["careers"] == [
-        {"person_id": 1, "career_id": 1, "career_name": "Engineering"}
+        {"person_id": 1, "career_name": "Engineering"}
     ]
-    assert data["persons"][0]["subjects"] == [
-        {"person_id": 1, "subject_id": 1, "subject_name": "Math"}
-    ]
+    assert data["persons"][0]["subjects"] == [{"person_id": 1, "subject_name": "Math"}]
     assert data["persons"][1]["person_name"] == "Jane"
-    assert data["persons"][1]["careers"] == [
-        {"person_id": 2, "career_id": 2, "career_name": "Biology"}
-    ]
+    assert data["persons"][1]["careers"] == [{"person_id": 2, "career_name": "Biology"}]
     assert data["persons"][1]["subjects"] == [
-        {"person_id": 2, "subject_id": 2, "subject_name": "Chemistry"}
+        {"person_id": 2, "subject_name": "Chemistry"}
     ]
 
 
@@ -111,8 +122,8 @@ def test_get_all_persons_no_related_data(test_db_setup, mocker):
     db.add(person1)
     db.commit()
 
-    mocker.patch("services.front.person_svc.get_related_careers", return_value=[])
-    mocker.patch("services.front.person_svc.get_related_subjects", return_value=[])
+    mocker.patch("services.front.career_svc.get_related_careers_svc", return_value=[])
+    mocker.patch("services.front.subject_svc.get_related_subjects_svc", return_value=[])
 
     response = client.get("/front/person/get_all?skip=0&limit=10")
     assert response.status_code == 200
