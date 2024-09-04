@@ -71,11 +71,11 @@ Para ejecutar el proyecto localmente o en un entorno de desarrollo, sigue estos 
 1. Clonar el Repositorio dentro de una carpeta
 
 git clone https://github.com/juanbrusasca96/ed_machina
-cd <nombre-de-la-carpeta>
 
 2. Construir y Ejecutar el Proyecto con Docker Compose
 
 docker-compose up --build
+Dentro de la carpeta backend y frontend
 
 Ejecución del Proyecto
 
