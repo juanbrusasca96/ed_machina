@@ -13,8 +13,10 @@ COPY ./requirements.txt /usr/src/requirements.txt
 # install dependencies
 RUN pip install --no-cache-dir --upgrade -r /usr/src/requirements.txt
 
-EXPOSE 8002
-
 # copy project
 COPY . /usr/src/
-CMD ["uvicorn", "main:app", "--proxy-headers","--reload","--workers","1", "--host", "0.0.0.0", "--port", "8002"]
+
+EXPOSE 8002
+
+# Default command
+CMD ["uvicorn", "main:app", "--proxy-headers", "--reload", "--workers", "1", "--host", "0.0.0.0", "--port", "8002"]
