@@ -84,6 +84,7 @@ Antes de probar la aplicacion debe correrse el endpoint "/data/upload"
 
 Estructura de Carpetas
 
+```
 .
 ├── app/
 │   ├── __init__.py
@@ -105,9 +106,9 @@ ORM vs SQL Crudo: Se utiliza SQL crudo para ciertas operaciones, gestionadas a t
 
 Endpoints de la API
 
-GET /front/person/get_all: Obtiene todos los registros de personas paginados.
-GET /front/person/get/{person_id}: Obtiene un registro de persona por su ID.
-POST /front/person/register: Registra un lead en la base de datos.
-GET /front/person/check_email_exists: Devuelve un booleando indicanso si el email ya se encuentra registrado o no.
-GET /front/career/get_all: Obtiene todos los registros de carreras.
-GET /front/subject/get_by_career/{career_id}: Obtiene todas las materias que corresponden a una carrera.
+- **GET /front/person/get_all**: Obtiene todos los registros de personas paginados.
+- **GET /front/person/get/{person_id}**: Obtiene un registro de persona por su ID.
+- **POST /front/person/register**: Registra un lead en la base de datos.
+- **GET /front/person/check_email_exists**: Devuelve un booleano indicando si el email ya se encuentra registrado o no.
+- **GET /front/career/get_all**: Obtiene todos los registros de carreras.
+- **GET /front/subject/get_by_career/{career_id}**: Obtiene todas las materias que corresponden a una carrera.
