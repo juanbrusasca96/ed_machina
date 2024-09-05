@@ -77,6 +77,11 @@ git clone https://github.com/juanbrusasca96/ed_machina
 docker-compose up --build
 Dentro de la carpeta backend y frontend
 
+3. Si se desean ejecutar los tests se debe ejecutar el siguiente comando
+
+docker-compose run --rm tests pytest tests/
+Dentro de la carpeta backend
+
 Ejecución del Proyecto
 
 Después de configurar el proyecto, puedes acceder a la API en http://localhost:8002/docs
