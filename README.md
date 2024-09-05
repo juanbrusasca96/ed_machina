@@ -1,3 +1,4 @@
+```plaintext
 - Explicación funcional:
 
 Este proyecto es una solución para el desafío técnico que consiste en desarrollar un sistema de registro de leads de personas que cursan materias en carreras específicas. La solución está compuesta por una API RESTful construida con FastAPI para el backend y una interfaz frontend para gestionar la carga de datos. El backend permite registrar a los leads y consultar los registros cargados de forma paginada.
@@ -89,7 +90,6 @@ Antes de probar la aplicacion debe correrse el endpoint "/data/upload"
 
 Estructura de Carpetas
 
-```plaintext
 .
 ├── app/
 │   ├── __init__.py
