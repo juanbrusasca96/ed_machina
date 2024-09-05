@@ -84,7 +84,7 @@ Antes de probar la aplicacion debe correrse el endpoint "/data/upload"
 
 Estructura de Carpetas
 
-```
+```plaintext
 .
 ├── app/
 │   ├── __init__.py
