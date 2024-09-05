@@ -70,7 +70,7 @@ Para ejecutar el proyecto localmente o en un entorno de desarrollo, sigue estos 
 
 1. Clonar el Repositorio dentro de una carpeta
 
-git clone https://github.com/juanbrusasca96/ed_machina
+git clone https://github.com/juanbrusasca96/ed_machina.git
 
 2. Construir y Ejecutar el Proyecto con Docker Compose
 
