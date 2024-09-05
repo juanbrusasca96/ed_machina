@@ -1,9 +1,8 @@
 "use client";
-import { Controller, Form, useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { Button, FormControl, FormHelperText, Grid, Grid2, InputLabel, MenuItem, Select, Snackbar, TextField, Typography } from '@mui/material';
-import axios from 'axios';
+import { Button, FormControl, FormHelperText, Grid2, InputLabel, MenuItem, Select, Snackbar, TextField } from '@mui/material';
 import { useEffect, useState } from 'react';
 import axiosInstance from '@/axiosConfig';
 
@@ -12,6 +11,7 @@ export default function Home() {
   const [careers, setCareers] = useState([]);
   const [subjects, setSubjects] = useState([]);
   const [open, setOpen] = useState(false);
+  const [id, setId] = useState(0);
 
   useEffect(() => {
     const getData = async () => {
@@ -25,7 +25,6 @@ export default function Home() {
     }
     getData();
   }, []);
-  console.log(emailExists)
 
   const schema = yup.object().shape({
     person_name: yup.string()
@@ -112,7 +111,6 @@ export default function Home() {
   const errors = methods.formState.errors;
 
   const handleValidateEmail = async (email) => {
-    console.log(email);
     try {
       const response = await axiosInstance.get('/front/person/check_email_exists', {
         params: {
@@ -149,7 +147,6 @@ export default function Home() {
   }
 
   const onSubmit = async (data) => {
-    console.log('si')
     data.subject = {
       subject_id: data.subject_id,
       study_time: data.study_time,
@@ -161,7 +158,8 @@ export default function Home() {
     }
     data = cleanObject(data);
     try {
-      await axiosInstance.post('/front/person/register', data);
+      const response = await axiosInstance.post('/front/person/register', data);
+      setId(response.data.person.person_id);
       methods.reset(defaultValues);
     }
     catch (error) {
@@ -175,8 +173,8 @@ export default function Home() {
     }
 
     setOpen(false);
+    setId(0);
   };
-  console.log(errors)
 
   return (
     <Grid2 container justifyContent='center' alignItems='center'>
@@ -185,6 +183,13 @@ export default function Home() {
         autoHideDuration={6000}
         onClose={handleClose}
         message="Email ya registrado, puede continuar con la carga de datos"
+        severity='success'
+      />
+      <Snackbar
+        open={id !== 0}
+        autoHideDuration={10000}
+        onClose={handleClose}
+        message={`Persona registrada con éxito, ID: ${id}`}
         severity='success'
       />
       <form onSubmit={methods.handleSubmit(onSubmit)} style={{ width: '40%' }}>
