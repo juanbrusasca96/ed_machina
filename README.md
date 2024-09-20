@@ -1,10 +1,11 @@
 ```plaintext
 - Explicación funcional:
 
-Este proyecto es una solución para el desafío técnico que consiste en desarrollar un sistema de registro de leads
-que cursan materias en carreras específicas. La solución está compuesta por una API RESTful construida con FastAPI 
-para el backend y una interfaz frontend para gestionar la carga de datos. El backend permite registrar a los leads 
-y consultar los registros cargados de forma paginada.
+Este proyecto es una solución para el desafío técnico que consiste en desarrollar un sistema de 
+registro de leads que cursan materias en carreras específicas. La solución está compuesta por 
+una API RESTful construida con FastAPI para el backend y una interfaz frontend para gestionar 
+la carga de datos. El backend permite registrar a los leads y consultar los registros cargados 
+de forma paginada.
 
 La API RESTful desarrollada permite:
 Registrar personas (leads) que cursan materias que pertenecen a alguna carrera.
@@ -14,29 +15,33 @@ Verificar si un email ya fue registrado.
 Consultar todos los registros de carreras.
 Consultar las materias que pertenecen a determinada carrera.
 
-En el frontend la interfaz permite la carga manual de leads con validación de datos antes del envío a la API.
+En el frontend la interfaz permite la carga manual de leads con validación de datos antes del 
+envío a la API.
 
 Funcionalidades del Backend:
 
-Registro de Leads: Endpoint para registrar a una persona y la materia y carrera que esta cursando, justo con el 
-año de inscripcion a la carrera, y el tiempo de estudio y cantidad de veces cursada la materia en cuestion. Si el 
-usuario no se encuentra registrado, lo crea y asocia los datos cargados. En el caso de que el usuario ya haya sido 
-registrado asocia los datos cargados a dicho usuario.
-Valida los datos de entrada (nombre, email, dirección, teléfono, etc.).
-Consulta de Leads Paginados: Endpoint para obtener todos los registros de personas de manera paginada, facilitando 
-la navegación por grandes cantidades de datos.
-Consulta de Lead por ID: Endpoint para obtener los detalles de un registro específico mediante su ID.
+Registro de Leads: Endpoint para registrar a una persona y la materia y carrera que esta 
+cursando, justo con el año de inscripcion a la carrera, y el tiempo de estudio y cantidad 
+de veces cursada la materia en cuestion. Si el usuario no se encuentra registrado, lo crea 
+y asocia los datos cargados. En el caso de que el usuario ya haya sido registrado asocia 
+los datos cargados a dicho usuario. Valida los datos de entrada (nombre, email, dirección, 
+teléfono, etc.).
+Consulta de Leads Paginados: Endpoint para obtener todos los registros de personas de manera 
+paginada, facilitando la navegación por grandes cantidades de datos.
+Consulta de Lead por ID: Endpoint para obtener los detalles de un registro específico mediante 
+su ID.
 
 Funcionalidades del Frontend:
 
-Validacion de email existente: si el email no esta registrado se habilitan los campos de nombre, apellido, 
-direccion y telefono para que el usuario pueda generarse con todos sus datos iniciales. Si el email ya esta 
-registrado estos campos anteriormente mencionados se omiten y solo se permite cargar la carrera, materia, 
-año de inscripcion, tiempo de estudio y cantidad de intentos.
-Formulario de Registro: Interfaz de usuario con validación de campos para registrar a una persona y sus 
-materias/carreras.
-Confirmación de Registro: Muestra un mensaje de confirmación con el ID del registro creado después de una carga 
-exitosa.
+Validacion de email existente: si el email no esta registrado se habilitan los campos de 
+nombre, apellido, direccion y telefono para que el usuario pueda generarse con todos sus 
+datos iniciales. Si el email ya esta registrado estos campos anteriormente mencionados 
+se omiten y solo se permite cargar la carrera, materia, año de inscripcion, tiempo de 
+estudio y cantidad de intentos.
+Formulario de Registro: Interfaz de usuario con validación de campos para registrar a una 
+persona y sus materias/carreras.
+Confirmación de Registro: Muestra un mensaje de confirmación con el ID del registro creado 
+después de una carga exitosa.
 
 Requisitos del Usuario
 
@@ -50,16 +55,20 @@ Flujo de Trabajo
 
 El usuario accede a la API o al frontend para registrar a una persona.
 Se ingresan los datos requeridos y se valida la información.
-La API procesa la solicitud de registro y almacena la información en una base de datos relacional (PostgreSQL).
+La API procesa la solicitud de registro y almacena la información en una base de datos 
+relacional (PostgreSQL).
 El usuario recibe una confirmación del registro con un ID único.
-El usuario puede consultar todos los registros de personas o buscar un registro específico utilizando su ID.
+El usuario puede consultar todos los registros de personas o buscar un registro 
+específico utilizando su ID.
 
 - Explicación técnica
 
-Este documento proporciona una guía detallada sobre la arquitectura, la configuración, y la ejecución del proyecto 
-de registro de leads. El backend está construido con FastAPI, y la base de datos utilizada es PostgreSQL. Además, 
-se implementa Redis como sistema de caché para mejorar el rendimiento de las consultas frecuentes. La aplicación 
-está completamente dockerizada para facilitar la configuración y la ejecución en diferentes entornos.
+Este documento proporciona una guía detallada sobre la arquitectura, la configuración, y 
+la ejecución del proyecto de registro de leads. El backend está construido con FastAPI, 
+y la base de datos utilizada es PostgreSQL. Además, se implementa Redis como sistema de 
+caché para mejorar el rendimiento de las consultas frecuentes. La aplicación está 
+completamente dockerizada para facilitar la configuración y la ejecución en diferentes 
+entornos.
 
 Tecnologías Utilizadas
 
@@ -131,15 +140,16 @@ Estructura de Carpetas
 Detalles Técnicos Importantes
 
 Validación de Datos: Se utiliza Pydantic para validar los datos de entrada en la API.
-ORM vs SQL Crudo: Se utiliza SQL crudo para ciertas operaciones, gestionadas a través de DAOs, permitiendo un 
-control más directo sobre las consultas SQL.
+ORM vs SQL Crudo: Se utiliza SQL crudo para ciertas operaciones, gestionadas a través de DAOs, 
+permitiendo un control más directo sobre las consultas SQL.
 
 Endpoints de la API
 
 - **GET /front/person/get_all**: Obtiene todos los registros de personas paginados.
 - **GET /front/person/get/{person_id}**: Obtiene un registro de persona por su ID.
 - **POST /front/person/register**: Registra un lead en la base de datos.
-- **GET /front/person/check_email_exists**: Devuelve un booleano indicando si el email ya se encuentra registrado 
-o no.
+- **GET /front/person/check_email_exists**: Devuelve un booleano indicando si el email ya se 
+encuentra registrado o no.
 - **GET /front/career/get_all**: Obtiene todos los registros de carreras.
-- **GET /front/subject/get_by_career/{career_id}**: Obtiene todas las materias que corresponden a una carrera.
+- **GET /front/subject/get_by_career/{career_id}**: Obtiene todas las materias que corresponden 
+a una carrera.
