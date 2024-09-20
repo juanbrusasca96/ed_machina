@@ -1,16 +1,15 @@
-from sqlalchemy.orm import Session
+from typing import cast
 from daos.career_dao import CareerDAO
-from schemas.person_schemas import PersonCreate
-
-career_dao = CareerDAO()
-
-def get_career_by_id_svc(person_data: PersonCreate, db: Session):
-    return career_dao.get_by_id(db, person_data.career.career_id)
+from models.career import CareerModel
+from services.base_service import BaseService
+from sqlalchemy.orm import Session
 
 
-def get_all_careers_svc(db: Session):
-    return career_dao.get_all(db)
+class CareerService(BaseService[CareerModel]):
+    def __init__(self, db: Session):
+        career_dao = CareerDAO(db)
+        super().__init__(career_dao)
+        self.dao: CareerDAO = cast(CareerDAO, self.dao)
 
-
-def get_related_careers_svc(person_ids: list, db: Session):
-    return career_dao.get_related_careers(person_ids, db)
+    def get_related_careers(self, person_ids: tuple):
+        return self.dao.get_related_careers(person_ids)

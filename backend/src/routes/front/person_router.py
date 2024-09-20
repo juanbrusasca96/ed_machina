@@ -1,26 +1,22 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from services.front.career_subject_svc import CareerSubjectService
+from models.subject import SubjectModel
+from services.front.subject_svc import SubjectService
 from services.front.person_subject_svc import (
-    create_person_subject_svc,
-    get_person_subject_by_person_id_and_subject_id_svc,
-    update_person_subject_svc,
+    PersonSubjectService,
 )
 from services.front.person_career_svc import (
-    create_person_career_svc,
-    get_person_career_by_person_id_and_career_id_svc,
-    update_person_career_svc,
+    PersonCareerService,
 )
 from models.career import CareerModel
-from services.front.career_svc import get_career_by_id_svc
+from services.front.career_svc import CareerService
 from models.person import PersonModel
 from schemas.person_schemas import PersonCreate, PersonCreateResponse, PersonResponse
 from services.front.person_svc import (
-    create_person_svc,
-    get_person_by_email_svc,
-    get_all_persons_svc,
-    get_person_by_id_svc,
+    PersonService,
 )
-from utils.functions import filter_fields
+from utils.functions import filter_fields, get_dict_from_list, to_dict
 from database import get_db
 from pydantic import EmailStr
 
@@ -33,13 +29,30 @@ person_router = APIRouter(
 
 @person_router.get("/check_email_exists")
 async def check_email_exists_route(email: EmailStr, db: Session = Depends(get_db)):
-    return get_person_by_email_svc(email, db) is not None
+    person_service = PersonService(db)
+
+    return (
+        person_service.get_by_field(
+            PersonModel.person_email.name, email.strip().lower()
+        )
+        is not None
+    )
 
 
 @person_router.get("/get/{person_id}")
 async def get_person_route(person_id: int, db: Session = Depends(get_db)):
-    person = get_person_by_id_svc(person_id, db)
+    person_service = PersonService(db)
+    career_service = CareerService(db)
+    subject_service = SubjectService(db)
+
+    person = person_service.get_by_id(person_id)
     if person:
+        person = to_dict(person)
+        person_id = person.get("person_id")
+        careers = career_service.get_related_careers((person_id,))
+        subjects = subject_service.get_related_subjects((person_id,))
+        person["careers"] = careers
+        person["subjects"] = subjects
         return PersonResponse(**dict(person))
     else:
         return {"message": "Person not found"}
@@ -49,54 +62,131 @@ async def get_person_route(person_id: int, db: Session = Depends(get_db)):
 async def get_all_persons_route(
     skip: int = 0, limit: int = 10, db: Session = Depends(get_db)
 ):
+    person_service = PersonService(db)
+    career_service = CareerService(db)
+    subject_service = SubjectService(db)
+
     if skip < 0 or limit < 0:
         raise HTTPException(
             status_code=400, detail="Skip and limit must be greater than 0"
         )
-    response = [
-        PersonResponse(**dict(person))
-        for person in get_all_persons_svc(skip, limit, db)
-    ]
-    return {"persons": response, "total_rows": len(response)}
+
+    response = []
+    persons: list[PersonModel] = person_service.get_all(skip, limit)
+    if persons:
+        person_ids = tuple(person.person_id for person in persons)
+        careers = get_dict_from_list(
+            career_service.get_related_careers(person_ids), "person_id"
+        )
+        subjects = get_dict_from_list(
+            subject_service.get_related_subjects(person_ids), "person_id"
+        )
+
+        for person in persons:
+            person = to_dict(person)
+            person_id = person.get("person_id")
+            person["careers"] = careers.get(person_id, [])
+            person["subjects"] = subjects.get(person_id, [])
+            response.append(PersonResponse(**dict(person)))
+
+    return {"persons": response, "total_rows": person_service.count()}
 
 
 @person_router.post("/register")
 async def register_person_route(
     person_data: PersonCreate, db: Session = Depends(get_db)
 ):
-    career_db: CareerModel = get_career_by_id_svc(person_data, db)
+    career_service = CareerService(db)
+    person_service = PersonService(db)
+    person_career_service = PersonCareerService(db)
+    person_subject_service = PersonSubjectService(db)
+    career_subject_service = CareerSubjectService(db)
+
+    career_db: CareerModel = career_service.get_by_id(person_data.career.career_id)
     if not career_db:
         raise HTTPException(
             status_code=400,
-            detail="Career not found or subject does not belong to career",
+            detail="Career not found",
         )
 
-    person: PersonModel = get_person_by_email_svc(person_data.person_email, db)
+    career_subject_db = career_subject_service.get_by_fields(
+        {
+            CareerModel.career_id.name: career_db.career_id,
+            SubjectModel.subject_id.name: person_data.subject.subject_id,
+        }
+    )
+    if not career_subject_db:
+        raise HTTPException(
+            status_code=400,
+            detail="Subject not found in career",
+        )
+
+    person: PersonModel = person_service.get_by_field(
+        PersonModel.person_email.name, person_data.person_email
+    )
 
     if not person:
-        person: PersonModel = create_person_svc(
-            filter_fields(person_data, PersonModel), db
+        person: PersonModel = person_service.create(
+            filter_fields(person_data, PersonModel)
         )
-        person = person.__dict__
-        create_person_career_svc(person, person_data, db)
-        create_person_subject_svc(person, person_data, db)
+        person_career_service.create(
+            {
+                PersonModel.person_id.name: person.person_id,
+                **person_data.career.model_dump(),
+            }
+        )
+        person_subject_service.create(
+            {
+                PersonModel.person_id.name: person.person_id,
+                **person_data.subject.model_dump(),
+            }
+        )
     else:
-        person_career = get_person_career_by_person_id_and_career_id_svc(
-            person.get("person_id"), person_data.career.career_id, db
+        person_career = person_career_service.get_by_fields(
+            {
+                PersonModel.person_id.name: person.person_id,
+                CareerModel.career_id.name: person_data.career.career_id,
+            }
         )
-        person_subject = get_person_subject_by_person_id_and_subject_id_svc(
-            person.get("person_id"), person_data.subject.subject_id, db
+        person_subject = person_subject_service.get_by_fields(
+            {
+                PersonModel.person_id.name: person.person_id,
+                SubjectModel.subject_id.name: person_data.subject.subject_id,
+            }
         )
         if not person_career:
-            create_person_career_svc(person, person_data, db)
+            person_career_service.create(
+                {
+                    PersonModel.person_id.name: person.person_id,
+                    **person_data.career.model_dump(),
+                }
+            )
         else:
-            update_person_career_svc(person_career, person_data, db)
+            person_career_service.update(
+                person_career.person_career_id,
+                {
+                    "enrollment_year": person_data.career.enrollment_year,
+                },
+            )
         if not person_subject:
-            create_person_subject_svc(person, person_data, db)
+            person_subject_service.create(
+                {
+                    PersonModel.person_id.name: person.person_id,
+                    **person_data.subject.model_dump(),
+                }
+            )
         else:
-            update_person_subject_svc(person_subject, person_data, db)
+            person_subject_service.update(
+                person_subject.person_subject_id,
+                {
+                    "study_time": person_subject.study_time
+                    + person_data.subject.study_time,
+                    "subject_attempts": person_subject.subject_attempts
+                    + person_data.subject.subject_attempts,
+                },
+            )
 
     return {
         "message": "Person created successfully",
-        "person": PersonCreateResponse(**dict(person)),
+        "person": PersonCreateResponse(**to_dict(person)),
     }
