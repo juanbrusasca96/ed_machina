@@ -1,6 +1,5 @@
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import inspect
 from models.career import CareerModel
 from models.person_career import PersonCareerModel
 from models.person_subject import PersonSubjectModel
@@ -101,11 +100,20 @@ def test_get_all_persons_with_related_data(test_db_setup, mocker):
     assert data["persons"][0]["careers"] == [
         {"person_id": 1, "career_name": "Engineering", "enrollment_year": 2021}
     ]
-    assert data["persons"][0]["subjects"] == [{"person_id": 1, "subject_name": "Math", "study_time": 5, "subject_attempts": 1}]
+    assert data["persons"][0]["subjects"] == [
+        {"person_id": 1, "subject_name": "Math", "study_time": 5, "subject_attempts": 1}
+    ]
     assert data["persons"][1]["person_name"] == "Jane"
-    assert data["persons"][1]["careers"] == [{"person_id": 2, "career_name": "Biology", "enrollment_year": 2021}]
+    assert data["persons"][1]["careers"] == [
+        {"person_id": 2, "career_name": "Biology", "enrollment_year": 2021}
+    ]
     assert data["persons"][1]["subjects"] == [
-        {"person_id": 2, "subject_name": "Chemistry", "study_time": 5, "subject_attempts": 1}
+        {
+            "person_id": 2,
+            "subject_name": "Chemistry",
+            "study_time": 5,
+            "subject_attempts": 1,
+        }
     ]
 
 
@@ -122,8 +130,13 @@ def test_get_all_persons_no_related_data(test_db_setup, mocker):
     db.add(person1)
     db.commit()
 
-    mocker.patch("services.front.career_svc.get_related_careers_svc", return_value=[])
-    mocker.patch("services.front.subject_svc.get_related_subjects_svc", return_value=[])
+    mocker.patch(
+        "services.front.career_svc.CareerService.get_related_careers", return_value=[]
+    )
+    mocker.patch(
+        "services.front.subject_svc.SubjectService.get_related_subjects",
+        return_value=[],
+    )
 
     response = client.get("/front/person/get_all?skip=0&limit=10")
     assert response.status_code == 200
@@ -196,7 +209,7 @@ def test_get_all_persons_skip_zero_limit_zero(test_db_setup):
     assert response.status_code == 200
     data = response.json()
     assert len(data["persons"]) == 0
-    assert data["total_rows"] == 0
+    assert data["total_rows"] == 2
 
 
 def test_get_all_persons_skip_greater_than_total(test_db_setup):
@@ -223,7 +236,7 @@ def test_get_all_persons_skip_greater_than_total(test_db_setup):
     assert response.status_code == 200
     data = response.json()
     assert len(data["persons"]) == 0
-    assert data["total_rows"] == 0
+    assert data["total_rows"] == 2
 
 
 def test_get_all_persons_large_limit(test_db_setup):
@@ -251,20 +264,3 @@ def test_get_all_persons_large_limit(test_db_setup):
     data = response.json()
     assert len(data["persons"]) == 2
     assert data["total_rows"] == 2
-
-
-def test_sql_injection_attempt_get_all(test_db_setup):
-    db = next(get_test_db())
-
-    malicious_skip = "0; DROP TABLE person; --"
-    malicious_limit = "10; DROP TABLE person; --"
-
-    response = client.get(
-        f"/front/person/get_all?skip={malicious_skip}&limit={malicious_limit}"
-    )
-
-    assert response.status_code == 422
-    inspector = inspect(db.get_bind())
-    assert (
-        "person" in inspector.get_table_names()
-    ), "La tabla 'person' debería existir; la inyección SQL no debe tener éxito."

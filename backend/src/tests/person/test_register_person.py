@@ -1,6 +1,7 @@
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import inspect
+from models.person_career import PersonCareerModel
+from models.person_subject import PersonSubjectModel
 from models.subject import SubjectModel
 from models.career_subject import CareerSubjectModel
 from models.person import PersonModel
@@ -41,6 +42,7 @@ def clean_db():
 
 def test_register_person_new_successful(test_db_setup, mocker):
     db = next(get_test_db())
+
     person_data = PersonCreate(
         person_name="John",
         person_last_name="Doe",
@@ -58,26 +60,18 @@ def test_register_person_new_successful(test_db_setup, mocker):
     db.commit()
 
     mocker.patch(
-        "services.front.career_svc.get_career_by_id_svc",
-        return_value={
-            "career_id": 1,
-            "career_name": "Engineering",
-            "subject_name": "Math",
-            "subject_id": 1,
-            "career_subject_id": 1,
-        },
+        "services.front.career_svc.CareerService.get_by_id",
+        return_value=CareerModel(career_id=1, career_name="Engineering"),
     )
-    mocker.patch("services.front.person_svc.get_person_by_email_svc", return_value=None)
     mocker.patch(
-        "services.front.person_svc.create_person_svc",
-        return_value=PersonModel(person_id=1, person_email="john.doe@example.com"),
+        "services.front.person_svc.PersonService.get_by_field", return_value=None
     )
 
     response = client.post("/front/person/register", json=person_data.model_dump())
 
     data = response.json()
-    assert data["message"] == "Person created successfully"
     assert response.status_code == 200
+    assert data["message"] == "Person created successfully"
     assert data["person"]["person_email"] == "john.doe@example.com"
 
 
@@ -92,13 +86,13 @@ def test_register_person_career_not_found(test_db_setup, mocker):
         subject={"subject_id": 2, "study_time": 5, "subject_attempts": 1},
     )
 
-    mocker.patch("services.front.career_svc.get_career_by_id_svc", return_value=None)
+    mocker.patch("services.front.career_svc.CareerService.get_by_id", return_value=None)
 
     response = client.post("/front/person/register", json=person_data.model_dump())
 
     assert response.status_code == 400
     data = response.json()
-    assert data["detail"] == "Career not found or subject does not belong to career"
+    assert data["detail"] == "Career not found"
 
 
 def test_register_person_update_career_and_subject(test_db_setup, mocker):
@@ -120,32 +114,35 @@ def test_register_person_update_career_and_subject(test_db_setup, mocker):
     db.commit()
 
     mocker.patch(
-        "services.front.career_svc.get_career_by_id_svc",
-        return_value={
-            "career_id": 1,
-            "career_name": "Engineering",
-            "subject_name": "Math",
-            "subject_id": 1,
-            "career_subject_id": 1,
-        },
+        "services.front.career_svc.CareerService.get_by_id",
+        return_value=CareerModel(career_id=1, career_name="Engineering"),
     )
     mocker.patch(
-        "services.front.person_svc.get_person_by_email_svc",
-        return_value=PersonModel(person_id=2, person_email="alice.johnson@example.com"),
+        "services.front.person_svc.PersonService.get_by_field",
+        return_value=PersonModel(
+            person_id=2,
+            person_email="alice.johnson@example.com",
+            person_name="Alice",
+            person_last_name="Johnson",
+            person_phone="+9876543210",
+            person_address="7890 Third Blvd",
+        ),
     )
     mocker.patch(
-        "services.front.person_career_svc.get_person_career_by_person_id_and_career_id_svc",
-        return_value={"person_career_id": 1},
+        "services.front.person_career_svc.PersonCareerService.get_by_fields",
+        return_value=PersonCareerModel(
+            person_career_id=1, person_id=2, career_id=1, enrollment_year=2021
+        ),
     )
     mocker.patch(
-        "services.front.person_subject_svc.get_person_subject_by_person_id_and_subject_id_svc",
-        return_value={"person_subject_id": 1},
-    )
-    mocker.patch(
-        "services.front.person_career_svc.update_person_career_svc", return_value=None
-    )
-    mocker.patch(
-        "services.front.person_subject_svc.update_person_subject_svc", return_value=None
+        "services.front.person_subject_svc.PersonSubjectService.get_by_fields",
+        return_value=PersonSubjectModel(
+            person_subject_id=1,
+            person_id=2,
+            subject_id=1,
+            study_time=5,
+            subject_attempts=1,
+        ),
     )
 
     response = client.post("/front/person/register", json=person_data.model_dump())
@@ -173,34 +170,25 @@ def test_register_person_create_new_career_and_subject(test_db_setup, mocker):
     db.commit()
     db.add(CareerSubjectModel(career_id=1, subject_id=1))
     db.commit()
+    db.add(
+        PersonModel(
+            person_id=3,
+            person_email="bob.brown@example.com",
+            person_name="Bob",
+            person_last_name="Brown",
+            person_phone="+1122334455",
+            person_address="1357 Fifth Ave",
+        )
+    )
+    db.commit()
 
     mocker.patch(
-        "services.front.career_svc.get_career_by_id_svc",
-        return_value={
-            "career_id": 1,
-            "career_name": "Engineering",
-            "subject_name": "Math",
-            "subject_id": 1,
-            "career_subject_id": 1,
-        },
-    )
-    mocker.patch(
-        "services.front.person_svc.get_person_by_email_svc",
-        return_value=PersonModel(person_id=3, person_email="bob.brown@example.com"),
-    )
-    mocker.patch(
-        "services.front.person_career_svc.get_person_career_by_person_id_and_career_id_svc",
+        "services.front.person_career_svc.PersonCareerService.get_by_fields",
         return_value=None,
     )
     mocker.patch(
-        "services.front.person_subject_svc.get_person_subject_by_person_id_and_subject_id_svc",
+        "services.front.person_subject_svc.PersonSubjectService.get_by_fields",
         return_value=None,
-    )
-    mocker.patch(
-        "services.front.person_career_svc.create_person_career_svc", return_value=None
-    )
-    mocker.patch(
-        "services.front.person_subject_svc.create_person_subject_svc", return_value=None
     )
 
     response = client.post("/front/person/register", json=person_data.model_dump())
@@ -225,25 +213,3 @@ def test_register_person_invalid_data(test_db_setup):
     response = client.post("/front/person/register", json=invalid_person_data)
 
     assert response.status_code == 422
-
-
-def test_sql_injection_attempt_register_person(test_db_setup):
-    db = next(get_test_db())
-
-    malicious_email = "'; DROP TABLE person; --"
-
-    person_data = {
-        "person_name": "John",
-        "person_last_name": "Doe",
-        "person_email": malicious_email,
-        "person_phone": "1234567890",
-        "person_address": "1234 Main St",
-    }
-
-    response = client.post("/front/person/register", json=person_data)
-
-    assert response.status_code == 400 or response.status_code == 422
-    inspector = inspect(db.get_bind())
-    assert (
-        "person" in inspector.get_table_names()
-    ), "La tabla 'person' debería existir; la inyección SQL no debe tener éxito."

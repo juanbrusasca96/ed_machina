@@ -120,8 +120,12 @@ def test_get_person_existing_with_related_data(test_db_setup, mocker):
     assert data["person_email"] == "john.doe@example.com"
     assert data["person_phone"] == "1234567890"
     assert data["person_address"] == "Testing"
-    assert data["careers"] == [{"person_id": 1, "career_name": "Engineering", "enrollment_year": 2021}]
-    assert data["subjects"] == [{"person_id": 1, "subject_name": "Math", "study_time": 5, "subject_attempts": 1}]
+    assert data["careers"] == [
+        {"person_id": 1, "career_name": "Engineering", "enrollment_year": 2021}
+    ]
+    assert data["subjects"] == [
+        {"person_id": 1, "subject_name": "Math", "study_time": 5, "subject_attempts": 1}
+    ]
 
 
 def test_get_person_existing_no_related_data(test_db_setup, mocker):
@@ -138,8 +142,8 @@ def test_get_person_existing_no_related_data(test_db_setup, mocker):
     db.commit()
     db.refresh(person)
 
-    mocker.patch("services.front.career_svc.get_related_careers_svc", return_value=[])
-    mocker.patch("services.front.subject_svc.get_related_subjects_svc", return_value=[])
+    mocker.patch("services.front.career_svc.CareerService.get_related_careers", return_value=[])
+    mocker.patch("services.front.subject_svc.SubjectService.get_related_subjects", return_value=[])
 
     response = client.get(f"/front/person/get/{person.person_id}")
     assert response.status_code == 200

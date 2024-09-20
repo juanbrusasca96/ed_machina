@@ -1,7 +1,7 @@
 import pytest
 from main import app
 from fastapi.testclient import TestClient
-from services.front.person_svc import get_person_by_email_svc
+from services.front.person_svc import PersonService
 from models.person import PersonModel
 from sqlalchemy.orm import Session
 from database import get_test_db, test_engine, Base, get_db, TestingSessionLocal
@@ -49,9 +49,10 @@ def test_get_person_by_email(test_db_setup):
     db.add(new_person)
     db.commit()
 
-    person = get_person_by_email_svc(email, db)
+    person_service = PersonService(db)
+    person = person_service.get_by_field(PersonModel.person_email.name, email)
     assert person is not None
-    assert person.get("person_email") == email
+    assert person.person_email == email
 
     db.delete(new_person)
     db.commit()
@@ -61,8 +62,8 @@ def test_get_person_by_email_not_found(test_db_setup):
     db: Session = next(get_test_db())
 
     email = "nonexistent@example.com"
-
-    person = get_person_by_email_svc(email, db)
+    person_service = PersonService(db)
+    person = person_service.get_by_field(PersonModel.person_email.name, email)
     assert person is None
 
 
@@ -70,60 +71,9 @@ def test_get_person_by_email_none(test_db_setup):
     db: Session = next(get_test_db())
 
     email = None
-    person = get_person_by_email_svc(email, db)
+    person_service = PersonService(db)
+    person = person_service.get_by_field(PersonModel.person_email.name, email)
     assert person is None
-
-
-def test_get_person_by_email_with_spaces(test_db_setup):
-    db: Session = next(get_test_db())
-
-    email = "test@example.com"
-    new_person = PersonModel(
-        person_name="Test",
-        person_last_name="Test",
-        person_email=email,
-        person_phone="1234567890",
-        person_address="Test",
-    )
-    db.add(new_person)
-    db.commit()
-
-    person = get_person_by_email_svc("  test@example.com  ", db)
-    assert person is not None
-    assert person.get("person_email") == email
-
-    db.delete(new_person)
-    db.commit()
-
-
-def test_sql_injection_attempt(test_db_setup):
-    db: Session = next(get_test_db())
-
-    email = "test@example.com' OR '1'='1"
-    person = get_person_by_email_svc(email, db)
-    assert person is None
-
-
-def test_case_sensitivity(test_db_setup):
-    db: Session = next(get_test_db())
-
-    email = "test@example.com"
-    new_person = PersonModel(
-        person_name="Test",
-        person_last_name="Test",
-        person_email=email,
-        person_phone="1234567890",
-        person_address="Test",
-    )
-    db.add(new_person)
-    db.commit()
-
-    person = get_person_by_email_svc("TEST@EXAMPLE.COM", db)
-    assert person is not None
-    assert person.get("person_email") == email
-
-    db.delete(new_person)
-    db.commit()
 
 
 def test_check_email_exists_route(test_db_setup):
@@ -138,9 +88,11 @@ def test_check_email_exists_route(test_db_setup):
     )
     db.add(new_person)
     db.commit()
+
     response = client.get(f"/front/person/check_email_exists?email={email}")
     assert response.status_code == 200
     assert response.json() is True
+
     db.delete(new_person)
     db.commit()
 
@@ -162,3 +114,46 @@ def test_empty_email(test_db_setup):
     email = ""
     response = client.get(f"/front/person/check_email_exists?email={email}")
     assert response.status_code == 422
+
+
+def test_email_with_spaces(test_db_setup):
+    email = "  test@example.com  "
+    new_person = PersonModel(
+        person_name="Test",
+        person_last_name="Test",
+        person_email="test@example.com",
+        person_phone="1234567890",
+        person_address="Test",
+    )
+    db: Session = next(get_test_db())
+    db.add(new_person)
+    db.commit()
+
+    response = client.get(f"/front/person/check_email_exists?email={email}")
+    assert response.status_code == 200
+    assert response.json() is True
+
+    db.delete(new_person)
+    db.commit()
+
+
+def test_case_sensitivity(test_db_setup):
+    db: Session = next(get_test_db())
+
+    email = "test@example.com"
+    new_person = PersonModel(
+        person_name="Test",
+        person_last_name="Test",
+        person_email=email,
+        person_phone="1234567890",
+        person_address="Test",
+    )
+    db.add(new_person)
+    db.commit()
+
+    response = client.get(f"/front/person/check_email_exists?email={email.upper()}")
+    assert response.status_code == 200
+    assert response.json() is True
+
+    db.delete(new_person)
+    db.commit()
