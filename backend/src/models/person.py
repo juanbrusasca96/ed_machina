@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, inspect
+from sqlalchemy import Column, Integer, String
 from database import Base
 from sqlalchemy.orm import relationship, Mapped
 from models.career import CareerModel
@@ -23,6 +23,3 @@ class PersonModel(Base):
     subjects: Mapped[list[SubjectModel]] = relationship(
         SubjectModel, secondary=PersonSubjectModel.__tablename__, lazy="joined"
     )
-    
-    def to_dict(self):
-        return {c.key: getattr(self, c.key) for c in inspect(self).mapper.column_attrs}

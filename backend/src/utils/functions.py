@@ -68,3 +68,19 @@ def get_dict_from_list(array: list, id_name_or_index):
                     grouped_dict[key] = [obj]
 
     return grouped_dict
+
+
+def to_dict(model_instance):
+    """
+    Convierte una instancia del modelo en un diccionario
+    
+    Args:
+        model_instance: La instancia del modelo SQLAlchemy.
+    
+    Returns:
+        Un diccionario con los atributos de la instancia del modelo.
+    """
+    return {
+        column.name: getattr(model_instance, column.name)
+        for column in model_instance.__table__.columns
+    }
