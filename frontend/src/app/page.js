@@ -17,7 +17,7 @@ export default function Home() {
     const getData = async () => {
       try {
         const response = await axiosInstance.get('/front/career/get_all');
-        setCareers(response.data);
+        setCareers(response.data.result);
       }
       catch (error) {
         console.error(error);
@@ -130,7 +130,7 @@ export default function Home() {
   const handleCareerChange = async (careerId) => {
     try {
       const response = await axiosInstance.get('/front/subject/get_by_career/' + careerId);
-      setSubjects(response.data);
+      setSubjects(response.data.result);
     }
     catch (error) {
       console.error(error);
@@ -281,25 +281,23 @@ export default function Home() {
               </FormControl>
             </>
           }
-          <FormControl>
+          <FormControl error={errors.career_id?.message}>
             <InputLabel id="demo-simple-select-label">Carrera</InputLabel>
             <Controller
-              name='career_id'
+              name="career_id"
               control={control}
               rules={{ required: true }}
               render={({ field, fieldState }) => (
                 <Select
                   labelId="demo-simple-select-label"
-                  id="demo-simple-select"
                   {...field}
-                  label='Carrera'
+                  label="Carrera"
                   onChange={(event) => {
                     field.onChange(event);
                     handleCareerChange(event.target.value);
                   }}
-                  value={field.value}
+                  value={field.value ?? ''}
                   error={fieldState.invalid}
-                  helperText={fieldState.error?.message}
                 >
                   {careers.map((career) => (
                     <MenuItem key={career.career_id} value={career.career_id}>
@@ -309,7 +307,9 @@ export default function Home() {
                 </Select>
               )}
             />
-            <FormHelperText sx={{ color: 'error.main' }}>{errors.career_id?.message}</FormHelperText>
+            <FormHelperText sx={{ color: 'error.main' }}>
+              {errors.career_id?.message}
+            </FormHelperText>
           </FormControl>
           <FormControl>
             <Controller
@@ -340,9 +340,8 @@ export default function Home() {
                     {...field}
                     label='Materia'
                     onChange={field.onChange}
-                    value={field.value}
+                    value={field.value ?? ''}
                     error={fieldState.invalid}
-                    helperText={fieldState.error?.message}
                   >
                     {subjects.map((subject) => (
                       <MenuItem key={subject.subject_id} value={subject.subject_id}>
